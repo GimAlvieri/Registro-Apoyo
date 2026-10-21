@@ -1,0 +1,36 @@
+<%- include("../partials/header", { title: editing ? "Editar beneficiario" : "Nuevo beneficiario" }) %>
+<h1><%= editing ? "Editar beneficiario" : "Registrar beneficiario" %></h1>
+
+<% if (errors.length) { %>
+  <div class="errors" role="alert">
+    <ul><% errors.forEach((error) => { %><li><%= error %></li><% }) %></ul>
+  </div>
+<% } %>
+
+<form method="post" action="<%= editing ? `/beneficiarios/${id}/editar` : '/beneficiarios' %>">
+  <label for="nombre">Nombre completo *</label>
+  <input id="nombre" name="nombre" maxlength="100" required value="<%= beneficiario.nombre || '' %>">
+
+  <label for="dni">DNI *</label>
+  <input id="dni" name="dni" maxlength="15" required value="<%= beneficiario.dni || '' %>">
+
+  <label for="celular">Celular</label>
+  <input id="celular" name="celular" maxlength="15" value="<%= beneficiario.celular || '' %>">
+
+  <label for="id_responsable">Responsable</label>
+  <select id="id_responsable" name="id_responsable">
+    <option value="">Sin asignar</option>
+    <% responsables.forEach((responsable) => { %>
+      <option value="<%= responsable.id_responsable %>" <%= String(beneficiario.id_responsable || '') === String(responsable.id_responsable) ? "selected" : "" %>>
+        <%= responsable.nombre %><%= responsable.cargo ? ` — ${responsable.cargo}` : "" %>
+      </option>
+    <% }) %>
+  </select>
+
+  <p class="muted">Los campos marcados con * son obligatorios. El DNI debe ser único.</p>
+  <div class="actions">
+    <button type="submit"><%= editing ? "Guardar cambios" : "Registrar" %></button>
+    <a class="button secondary" href="<%= editing ? `/beneficiarios/${id}` : '/beneficiarios' %>">Cancelar</a>
+  </div>
+</form>
+<%- include("../partials/footer") %>

@@ -1,0 +1,29 @@
+<%- include("../partials/header", { title: "Beneficiarios" }) %>
+<div class="actions">
+  <h1 style="flex: 1">Beneficiarios</h1>
+  <a class="button" href="/beneficiarios/nuevo">Registrar beneficiario</a>
+  <a class="button secondary" href="/solicitudes/nueva">Registrar apoyo</a>
+</div>
+
+<% if (!beneficiarios.length) { %>
+  <p class="card">Todavía no hay beneficiarios registrados.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr><th>Nombre</th><th>DNI</th><th>Celular</th><th>Responsable</th><th>Apoyos</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+      <% beneficiarios.forEach((beneficiario) => { %>
+        <tr>
+          <td><%= beneficiario.nombre %></td>
+          <td><%= beneficiario.dni %></td>
+          <td><%= beneficiario.celular || "—" %></td>
+          <td><%= beneficiario.responsable || "Sin asignar" %></td>
+          <td><%= beneficiario.total_apoyos %></td>
+          <td><a href="/beneficiarios/<%= beneficiario.id_beneficiario %>">Ver detalles</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+<%- include("../partials/footer") %>
