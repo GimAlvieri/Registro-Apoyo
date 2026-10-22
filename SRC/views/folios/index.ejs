@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Carátulas de Folio - Municipalidad de Chinchao</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <link rel="stylesheet" href="/css/folios.css" />
+  </head>
+
+  <body>
+    <!-- MODALES -->
+    <div id="modalDuplicados" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-caja">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+          <div class="modal-duplicados-titulo" style="font-weight:700; color:#dc2626;">⚠️ Ubicación del nombre duplicado</div>
+          <button type="button" style="border:0; background:transparent; font-size:20px; cursor:pointer;" onclick="cerrarModal('modalDuplicados')">×</button>
+        </div>
+        <div id="contenidoModalDuplicados" style="padding:16px 0; color:#334155; font-size:13px;"></div>
+        <div style="text-align:right;">
+          <button type="button" class="btn btn-sky" onclick="cerrarModal('modalDuplicados')">Entendido</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL SELECCIÓN DE IMPRESIÓN (2 EN 1 PÁGINA) -->
+    <div id="modalImpresion" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-impresion-caja">
+        <div class="panel-seleccion-impresion">
+          <h3>🖨️ Selección para Impresión</h3>
+          <input type="search" id="buscadorImpresion" placeholder="🔍 Buscar" style="width:100%; margin-bottom:8px;" />
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
+            <label style="display:flex; align-items:center; gap:6px; margin:0; font-size:12px; color:#334155; font-weight:600;">
+              <input type="checkbox" id="chkMarcarTodosVisibles" style="width:auto;" />
+              Marcar todos visibles
+            </label>
+            <span id="contadorImpresion" style="font-size:11px; color:#64748b;">0 visibles</span>
+          </div>
+          <div id="listaSeleccionImprimir" style="flex:1; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:10px; background:#f8fafc;">
+            <!-- Folios para marcar -->
+          </div>
+
+          <div id="seccionFoliosImpresos" style="margin-top:12px; border-top:1px solid #e2e8f0; padding-top:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
+              <span style="font-size:12px; color:#334155; font-weight:600;">📌 Impresos</span>
+              <button type="button" id="btnToggleFoliosImpresos" class="btn btn-gray" style="padding:6px 10px; font-size:11px; min-width:140px;">Ocultar impresos</button>
+            </div>
+            <div id="listaFoliosImpresos" style="max-height:120px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:8px; background:#f8fafc; display:block;">
+              <!-- Impresos -->
+            </div>
+          </div>
+
+          <div id="confirmarImpresionWrap" style="display:none; margin-top:12px; padding:10px; border:1px solid #16a34a; border-radius:8px; background:#f0fdf4;">
+            <div style="font-size:13px; font-weight:600; color:#166534; margin-bottom:8px;">
+              ¿La impresión salió correctamente?
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-primary" style="flex:1; background:#16a34a;" onclick="confirmarImpresionOk()">✅ Sí, imprimió</button>
+              <button type="button" class="btn btn-gray" style="flex:1;" onclick="confirmarImpresionCancelar()">❌ No / Cancelar</button>
+            </div>
+          </div>
+
+          <div style="margin-top:15px; display:flex; gap:10px;">
+            <button type="button" class="btn btn-gray" style="flex:1;" onclick="cerrarModal('modalImpresion')">Cancelar</button>
+            <button type="button" class="btn btn-primary" style="flex:1; background:#16a34a;" onclick="ejecutarImpresionDosFolios()">Imprimir/PDF</button>
+          </div>
+        </div>
+        <div class="panel-vista-impresion">
+          <div class="hojas-impresion-preview" id="hojaImpresionImprimible">
+            <!-- Dos carátulas renderizadas dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalExportarExcel" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-caja">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+          <div style="font-size:17px; font-weight:700;">📊 Exportar a Excel</div>
+          <button type="button" style="border:0; background:transparent; font-size:20px; cursor:pointer;" onclick="cerrarModal('modalExportarExcel')">×</button>
+        </div>
+        <div style="padding:16px 0;">
+          <label>¿Qué deseas exportar?</label>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:normal; margin-bottom:8px;">
+            <input type="checkbox" id="chkExportarTodos" checked style="width:auto;"> 📚 Todos los folios
+          </label>
+          <div id="listaCheckboxFolios" style="max-height:220px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:8px; display:none;"></div>
+          <div style="margin-top:9px; color:#64748b; font-size:12px;"></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button type="button" class="btn btn-gray" onclick="cerrarModal('modalExportarExcel')">Cancelar</button>
+          <button type="button" class="btn btn-sky" id="btnConfirmarExportarExcel">Exportar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalConfig" class="modal-overlay">
+      <div class="modal-caja">
+        <h3>⚙️ Configuración de plantilla</h3>
+        <div class="config-vista-previa">
+          <h4>Vista previa del diseño actual</h4>
+          <div class="caratula" id="configVistaCaratula">
+            <div class="titulo">MUNICIPALIDAD DISTRITAL DE CHINCHAO</div>
+            <img class="escudo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiij9VKAtMBiHfcGy8Q-NeekFK54ihGvJrZXLHmxDx9CH1jUUrDz5Gfvc&s=10" alt="Escudo">
+            <div class="subgerencia" id="configVistaSubgerencia"></div>
+            <div class="cv-label" id="configVistaCvLabel"></div>
+            <div class="nombres" id="configVistaNombres"></div>
+            <div class="folio-circulo" id="configVistaNumero">01</div>
+            <div class="periodo" id="configVistaPeriodo">2023-2024</div>
+          </div>
+        </div>
+        <div class="config-herramientas">
+          <button type="button" id="btnAlternarTodasConfig" class="btn btn-gray">🔽 Expandir / contraer todo</button>
+          <small class="config-ayuda">Toca el nombre de una sección para abrir sus opciones.</small>
+        </div>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">Cargo</summary>
+          <div class="config-cuerpo-seccion">
+            <input type="text" id="cfgRubroActual" />
+            <small style="color:#777;">Los nuevos nombres agregados tomarán este cargo de forma predeterminada.</small>
+          </div>
+        </details>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">Municipalidad Distrital de Chinchao</summary>
+          <div class="config-cuerpo-seccion">
+            <details class="opcion" open>
+              <summary>Tamaño</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosTitulo">−</button>
+                  <span id="valorTamanoTitulo">22 px</span>
+                  <button type="button" id="btnMasTitulo">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Espacio debajo</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosEspacioTitulo">−</button>
+                  <span id="valorEspacioTitulo">8 px</span>
+                  <button type="button" id="btnMasEspacioTitulo">+</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">Título del Área</summary>
+          <div class="config-cuerpo-seccion">
+            <input type="text" id="cfgSubgerencia" placeholder="SUB GERENCIA DE RECURSOS HUMANOS" />
+            <details class="opcion">
+              <summary>Tipo</summary>
+              <div class="opcion-cuerpo">
+                <select id="cfgFuenteSubgerencia">
+                  <option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option><option value="Verdana">Verdana</option>
+                  <option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option>
+                  <option value="Trebuchet MS">Trebuchet MS</option><option value="Calibri">Calibri</option>
+                  <option value="Garamond">Garamond</option><option value="Bookman Old Style">Bookman Old Style</option>
+                </select>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Tamaño</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosSubgerencia">−</button>
+                  <span id="valorTamanoSubgerencia">18 px</span>
+                  <button type="button" id="btnMasSubgerencia">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Espacio antes</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosEspacioGerencia">−</button>
+                  <span id="valorEspacioGerencia">0 px</span>
+                  <button type="button" id="btnMasEspacioGerencia">+</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">Tipo de documento</summary>
+          <div class="config-cuerpo-seccion">
+            <input type="text" id="cfgCvLabel" placeholder="Curriculum vitae" />
+            <details class="opcion">
+              <summary>Tipo</summary>
+              <div class="opcion-cuerpo">
+                <select id="cfgFuenteCv">
+                  <option value="Algerian">Algerian</option><option value="Arial">Arial</option>
+                  <option value="Times New Roman">Times New Roman</option><option value="Georgia">Georgia</option>
+                  <option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option>
+                  <option value="Courier New">Courier New</option><option value="Trebuchet MS">Trebuchet MS</option>
+                  <option value="Calibri">Calibri</option><option value="Garamond">Garamond</option>
+                  <option value="Bookman Old Style">Bookman Old Style</option>
+                </select>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Tamaño</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosCv">−</button>
+                  <span id="valorTamanoCv">26 px</span>
+                  <button type="button" id="btnMasCv">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Espacio antes</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosEspacioCurriculum">−</button>
+                  <span id="valorEspacioCurriculum">0 px</span>
+                  <button type="button" id="btnMasEspacioCurriculum">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Imagen</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosEscudo">−</button>
+                  <span id="valorTamanoEscudo">120 px</span>
+                  <button type="button" id="btnMasEscudo">+</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">Separador</summary>
+          <div class="config-cuerpo-seccion">
+            <details class="opcion">
+              <summary>Tipo</summary>
+              <div class="opcion-cuerpo">
+                <select id="cfgFuenteSeparador">
+                  <option value="Algerian">Algerian</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option><option value="Verdana">Verdana</option>
+                  <option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option>
+                  <option value="Trebuchet MS">Trebuchet MS</option><option value="Calibri">Calibri</option>
+                  <option value="Garamond">Garamond</option><option value="Bookman Old Style">Bookman Old Style</option>
+                </select>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Tamaño</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosSeparador">−</button>
+                  <span id="valorTamanoSeparador">18 px</span>
+                  <button type="button" id="btnMasSeparador">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Espacio antes</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosEspacioSeparador">−</button>
+                  <span id="valorEspacioSeparador">0 px</span>
+                  <button type="button" id="btnMasEspacioSeparador">+</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">Lista de nombres</summary>
+          <div class="config-cuerpo-seccion">
+            <details class="opcion">
+              <summary>Espacio antes</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosEspacioNombres">−</button>
+                  <span id="valorEspacioNombres">0 px</span>
+                  <button type="button" id="btnMasEspacioNombres">+</button>
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <details class="config-seccion config-acordeon">
+          <summary class="config-seccion-titulo">📌 Folio y año/periodo</summary>
+          <div class="config-cuerpo-seccion">
+            <details class="opcion">
+              <summary>Orden</summary>
+              <div class="opcion-cuerpo">
+                <select id="cfgOrdenFolioPeriodo">
+                  <option value="periodo-arriba">Año / periodo arriba, folio abajo</option>
+                  <option value="folio-arriba">Folio arriba, año / periodo abajo</option>
+                </select>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Tamaño folio</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosFolio">−</button>
+                  <span id="valorTamanoFolio">28 px</span>
+                  <button type="button" id="btnMasFolio">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Mover folio</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnSubirFolio">↑</button>
+                  <span id="valorPosicionFolio">0 px</span>
+                  <button type="button" id="btnBajarFolio">↓</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Tamaño año</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnMenosPeriodo">−</button>
+                  <span id="valorTamanoPeriodo">15 px</span>
+                  <button type="button" id="btnMasPeriodo">+</button>
+                </div>
+              </div>
+            </details>
+            <details class="opcion">
+              <summary>Mover año</summary>
+              <div class="opcion-cuerpo">
+                <div class="tamano-controles">
+                  <button type="button" id="btnSubirPeriodo">↑</button>
+                  <span id="valorPosicionPeriodo">0 px</span>
+                  <button type="button" id="btnBajarPeriodo">↓</button>
+                </div>
+              </div>
+            </details>
+
+            <div style="margin-top:10px;">
+              <button type="button" id="btnDefectoFolioPeriodo" class="btn btn-gray" style="width:100%;">↩ Volver por defecto</button>
+            </div>
+
+            <small style="display:block; margin-top:8px; color:#64748b;">
+              Puedes cambiar el orden, agrandar cada número por separado y moverlos arriba o abajo de forma independiente.
+            </small>
+          </div>
+        </details>
+
+        <div class="btn-group">
+          <button id="btnCerrarConfig" class="btn btn-gray" type="button">Cancelar</button>
+          <button id="btnGuardarConfig" class="btn btn-primary" type="button">Guardar</button>
+        </div>
+        <div id="avisoConfigPendiente" class="aviso-config-pendiente" role="status">
+          <strong>Aplicar el diseño a:</strong>
+          <select id="alcanceConfigPendiente" aria-label="Dónde aplicar el diseño">
+            <option value="uno">Solo este folio</option>
+            <option value="todos">Todos los folios</option>
+            <option value="todos-excepto-editados" selected>Todos, excepto folios editados</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENCABEZADO Y LAYOUT -->
+    <div class="encabezado">
+      <button id="btnConfig" type="button" title="Editar textos y apariencia">⚙️</button>
+    </div>
+
+    <div class="layout">
+      <!-- FORMULARIO -->
+      <div class="panel">
+        <h2>Nuevo / Editar Folio</h2>
+        <div id="modoEdicion">📝 Modo Edición - Los cambios se guardarán en el folio existente</div>
+
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label>N° de folio</label>
+            <input type="text" id="inpNumero" />
+          </div>
+          <div style="width:110px;">
+            <label>N° de bloque</label>
+            <input type="text" id="inpBloque" placeholder="01" />
+          </div>
+        </div>
+
+        <label>Periodo</label>
+        <input type="text" id="inpPeriodo" />
+
+        <div class="nombres-cabecera">
+          <label>Apellidos y Nombres / Cargo</label>
+          <button id="btnMostrarNotas" type="button">⚙️ Notas</button>
+        </div>
+
+        <div id="contNombres"></div>
+
+        <div id="contOpcionesFilas" style="display:none; margin-bottom:8px;">
+          <label style="font-size:12px; margin:0 0 4px; color:#475569;">Mostrar nombres:</label>
+          <select id="selectMostrarFilas">
+            <option value="primeros">Primeros 10</option>
+            <option value="ultimos">Últimos 10</option>
+            <option value="todos">Mostrar todo</option>
+          </select>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <button id="btnAgregarNombre" class="btn btn-sky" type="button">+ Agregar nombre</button>
+          <button id="btnAgregarSeparador" class="btn" style="background:#eab308; color:#1e293b;" type="button">➕ Agregar separador / tema</button>
+          <button id="btnReordenar" class="btn" style="background:#8b5cf6; color:#fff;" type="button">↕ Reordenar</button>
+        </div>
+
+        <label>Observaciones</label>
+        <textarea id="inpObservaciones" rows="3"></textarea>
+
+        <button id="btnGuardar" class="btn btn-primary" style="margin-top:16px; width:100%;" type="button">Guardar</button>
+        <input type="hidden" id="inpId" />
+
+        <div class="btn-group">
+          <button id="btnImprimirPDF" class="btn" style="background:#16a34a; color:#fff;" type="button">🖨️ Imprimir / PDF</button>
+          <button id="btnLimpiar" class="btn btn-gray" type="button">🧹 Limpiar</button>
+        </div>
+      </div>
+
+      <!-- CARÁTULA -->
+      <div class="caratula-wrap">
+        <div class="caratula" id="caratula">
+          <div class="titulo">MUNICIPALIDAD DISTRITAL DE CHINCHAO</div>
+          <img class="escudo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTiij9VKAtMBiHfcGy8Q-NeekFK54ihGvJrZXLHmxDx9CH1jUUrDz5Gfvc&s=10" alt="Escudo">
+          <div class="subgerencia" id="txtSubgerencia">SUB GERENCIA DE<br />RECURSOS HUMANOS</div>
+          <div class="cv-label" id="txtCvLabel">Curriculum vitae</div>
+          <div class="nombres" id="previewNombres"></div>
+          <div class="folio-circulo" id="previewNumero">01</div>
+          <div class="periodo" id="previewPeriodo">2023-2024</div>
+        </div>
+      </div>
+
+      <!-- LISTA -->
+      <div class="panel">
+        <h2>Folios guardados</h2>
+        <input type="search" id="buscador" placeholder="🔍 Buscar" style="margin-bottom: 8px" />
+        <div class="controles-lista-folios">
+          <button id="btnOrdenarBloque" class="btn-orden-lista" type="button">↕ Ordenar por bloque</button>
+        </div>
+        <div id="listaFolios">Cargando...</div>
+
+        <!-- PAGINACIÓN MEJORADA -->
+        <div class="paginacion">
+          <button id="btnPagPrimera" title="Primera página">|◀</button>
+          <button id="btnPagAnterior" title="Página anterior">◀</button>
+          
+          <div class="info-paginacion">
+            <span>Pág.</span>
+            <select id="selectPaginaDirecta" title="Ir a la página"></select>
+            <span id="txtTotalPaginas">de 1</span>
+          </div>
+
+          <button id="btnPagSiguiente" title="Página siguiente">▶</button>
+          <button id="btnPagUltima" title="Última página">▶|</button>
+        </div>
+
+        <button id="btnExportarExcel" class="btn btn-exportar-excel" type="button">📊 Exportar a Excel</button>
+
+        <div class="historial-panel">
+          <details>
+            <summary>📜 Historial de acciones</summary>
+            <div id="historialContenido" style="max-height: 200px; overflow-y: auto; margin-top: 8px">
+              <p style="color: #aaa; font-size: 13px">Sin acciones registradas.</p>
+            </div>
+            <button id="btnLimpiarHistorial" class="btn btn-danger" style="margin-top: 6px; padding: 4px 12px; font-size: 12px;" type="button">Limpiar historial</button>
+          </details>
+        </div>
+      </div>
+    </div>
+    <script src="/supabase-config.js"></script>
+    <script src="/js/folios.js"></script>
+  </body>
+</html>

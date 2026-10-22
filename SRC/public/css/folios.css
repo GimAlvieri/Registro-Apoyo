@@ -1,0 +1,412 @@
+:root {
+        --azul: #1e3a8a;
+        --azul-hover: #152a63;
+        --sky: #0ea5e9;
+        --sky-hover: #0284c7;
+        --bg-gray: #f1f5f9;
+        --border-color: #e5e7eb;
+      }
+
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; background: var(--bg-gray); margin: 0; padding: 20px; }
+
+      .layout { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+      .panel { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 400px; }
+
+      h2 { margin-top: 0; font-size: 18px; color: var(--azul); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+      label { display: block; font-size: 13px; margin: 10px 0 4px; font-weight: bold; color: #333; }
+
+      input[type="text"], input[type="search"], select, textarea {
+        width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; font-family: inherit;
+      }
+      textarea { resize: vertical; }
+
+      /* Botones Generales */
+      .btn { border: none; border-radius: 6px; cursor: pointer; font-weight: bold; padding: 8px; transition: background 0.2s; }
+      .btn-primary { background: var(--azul); color: #fff; }
+      .btn-primary:hover { background: var(--azul-hover); }
+      .btn-sky { background: var(--sky); color: #fff; }
+      .btn-sky:hover { background: var(--sky-hover); }
+      .btn-exportar-excel {
+        display: block; width: 100%; min-height: 50px; margin-top: 14px; padding: 12px 16px;
+        border: 2px solid #0369a1; border-radius: 8px; background: #0284c7; color: #fff;
+        font-size: 17px; font-weight: 700; box-shadow: 0 3px 8px rgba(3, 105, 161, 0.24);
+      }
+      .btn-exportar-excel:hover { background: #0369a1; }
+      .btn-exportar-excel:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+      .btn-danger { background: #ef4444; color: #fff; }
+      .btn-danger:hover { background: #dc2626; }
+      .btn-gray { background: #94a3b8; color: #fff; }
+      .btn-gray:hover { background: #64748b; }
+
+      /* Filas de Formulario */
+      .nombre-row {
+        display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;
+        background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;
+      }
+      .nombre-row-top { display: flex; gap: 6px; }
+      .nombre-row-top input { flex: 1; min-width: 0; }
+      .nombre-row-top button { background: #e11d48; color: #fff; border: none; border-radius: 6px; width: 32px; cursor: pointer; font-size: 16px; }
+      .fila-oculta { display: none; }
+
+      .nombre-duplicado-input {
+        color: #dc2626 !important; border: 2px solid #ef4444 !important; background: #fef2f2 !important; font-weight: 700;
+      }
+      .nombre-duplicado-input:focus { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15); }
+
+      .lista-folios-duplicados { list-style: none; padding: 0; margin: 8px 0 0; }
+      .ubicacion-duplicado {
+        border: 1px solid #dbe3ee; background: #f8fafc; border-radius: 8px;
+        padding: 10px; margin-bottom: 6px; font-size: 13px;
+      }
+      .ubicacion-duplicado[data-folio-id] { cursor: pointer; transition: background .15s, border-color .15s; }
+      .ubicacion-duplicado[data-folio-id]:hover,
+      .ubicacion-duplicado[data-folio-id]:focus-visible { border-color: #38bdf8; background: #f0f9ff; outline: none; }
+      .lista-item.ubicacion-enfocada { animation: resaltar-ubicacion 1.6s ease-out; }
+        .detalle-nombre.nombre-ubicacion-enfocada { animation: resaltar-ubicacion 1.6s ease-out; border-radius: 4px; }
+      @keyframes resaltar-ubicacion {
+        0%, 45% { outline: 3px solid #38bdf8; background: #e0f2fe; }
+        100% { outline: 3px solid transparent; }
+      }
+      .ubicacion-duplicado.ubicacion-actual { border-color: #fca5a5; background: #fef2f2; }
+      .ubicacion-duplicado b { color: #334155; }
+      .posicion-duplicado { margin-top: 5px; color: #dc2626; font-weight: 700; }
+      .titulo-ubicaciones { margin-top: 10px; font-weight: 700; color: #334155; }
+      .ubicacion-formulario {
+        margin-top: 10px; padding: 10px; border: 1px solid #facc15;
+        background: #fffbeb; border-radius: 8px;
+      }
+      .sin-ubicaciones { margin-top: 10px; padding: 10px; border-radius: 8px; background: #f8fafc; color: #64748b; }
+
+      /* Modo Reordenar */
+      .btn-orden { display: none; }
+      .modo-reordenar .nombre-row { cursor: pointer; transition: .2s; background: #bfdbfe; border: 2px solid #3b82f6; }
+      .modo-reordenar .nombre-row:hover { background: #93c5fd; border-color: #2563eb; }
+      .modo-reordenar .nombre-row.seleccionado,
+      .modo-reordenar .nombre-row.seleccionado,
+      .modo-reordenar .nombre-row.seleccionado:hover { background: #bfdbfe; border: 2px solid #3b82f6; }
+      .modo-reordenar .nombre-row.separador-row.seleccionado,
+      .modo-reordenar .nombre-row.separador-row.seleccionado:hover { background: #fef9c3; border-color: #eab308; }
+      .modo-reordenar .nombre-row.arrastrando { opacity: .5; }
+      .modo-reordenar .nombre-row-top button[onclick*="remove"] { display: none; }
+      .indicador-mover { display: none; float: right; font-weight: bold; color: #7c3aed; }
+      .modo-reordenar .nombre-row.seleccionado .indicador-mover { display: inline-block; }
+
+    .modo-reordenar .nombre-row.seleccionado.separador-row .inpSeparador { display: none; }
+.modo-reordenar .seleccionado.separador-row .nombre-row-top {
+  align-items: center;
+  gap: 10px;
+}
+.etiqueta-mover-separador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  background: #ede9fe;
+  border: 1px solid #8b5cf6;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: bold;
+  font-size: 13px;
+  color: #6d28d9;
+}
+.etiqueta-mover-separador .nombre-separador-texto {
+  flex: 1;
+  min-width: 0;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+      
+      .btn-group { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+      .btn-group button { flex: 1; min-width: 120px; }
+
+      /* Header & Modal */
+      .encabezado { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+      #btnConfig { background: #475569; color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+      #btnConfig:hover { background: #334155; }
+
+      .modal-overlay {
+        display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.48);
+        z-index: 5000; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px);
+      }
+      .modal-overlay.mostrar { display: flex; }
+      .modal-caja { background: #fff; border-radius: 10px; padding: 20px; width: 420px; max-width: 90vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+      #modalExportarExcel .modal-caja {
+        width: min(600px, 92vw); padding: 30px; border-radius: 14px; font-size: 18px;
+      }
+      #modalExportarExcel .modal-caja > div:first-child > div:first-child { font-size: 23px !important; }
+      #modalExportarExcel .modal-caja > div:nth-child(2) { padding: 22px 0 !important; }
+      #modalExportarExcel .modal-caja label { font-size: 18px; }
+      #modalExportarExcel #chkExportarTodos,
+      #modalExportarExcel .chkFolioExportar { width: 20px !important; height: 20px; }
+      #modalExportarExcel #listaCheckboxFolios { max-height: min(340px, 45vh) !important; padding: 12px !important; }
+      #modalExportarExcel #listaCheckboxFolios label { gap: 10px !important; padding: 9px 0 !important; }
+      #modalExportarExcel .modal-caja > div:nth-child(2) > div:last-child { font-size: 15px !important; }
+      #modalExportarExcel .modal-caja > div:last-child .btn { min-width: 110px; min-height: 46px; font-size: 16px; }
+
+      .config-seccion { border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-top: 14px; background: #f8fafc; }
+      .config-seccion h4 { margin: 0 0 10px; color: var(--azul); font-size: 16px; }
+
+      /* Acordeón de configuración: cada sección muestra solo su nombre */
+      .config-herramientas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+      .config-herramientas .btn { padding: 10px 14px; font-size: 15px; }
+      .config-ayuda { color: #64748b; font-size: 14px; }
+      details.config-acordeon { padding: 0; overflow: hidden; }
+      details.config-acordeon > summary.config-seccion-titulo {
+        cursor: pointer; list-style: none; margin: 0; padding: 15px 40px 15px 14px;
+        color: var(--azul); font-size: 17px; font-weight: bold; position: relative; user-select: none;
+      }
+      details.config-acordeon > summary.config-seccion-titulo:hover { background: #eef2ff; }
+      details.config-acordeon > summary.config-seccion-titulo::-webkit-details-marker { display: none; }
+      details.config-acordeon > summary.config-seccion-titulo::marker { content: ""; }
+      details.config-acordeon > summary.config-seccion-titulo::after {
+        content: "▸"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        font-size: 17px; color: var(--azul); transition: transform 0.2s ease;
+      }
+      details.config-acordeon[open] > summary.config-seccion-titulo::after { transform: translateY(-50%) rotate(90deg); }
+      .config-cuerpo-seccion { padding: 0 12px 12px; }
+      details.opcion {
+        border: 1px dashed #dbe3ee; border-radius: 6px; background: #fff; margin-top: 8px; overflow: hidden;
+      }
+      details.opcion > summary {
+        cursor: pointer; list-style: none; padding: 11px 32px 11px 12px; font-size: 15px; font-weight: bold;
+        color: #334155; position: relative; user-select: none;
+      }
+      details.opcion > summary:hover { background: #f8fafc; }
+      details.opcion > summary::-webkit-details-marker { display: none; }
+      details.opcion > summary::marker { content: ""; }
+      details.opcion > summary::after {
+        content: "▾"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        color: #94a3b8; font-size: 12px; transition: transform 0.2s ease;
+      }
+      details.opcion[open] > summary::after { transform: translateY(-50%) rotate(180deg); }
+      .opcion-cuerpo { padding: 0 10px 10px; }
+      .opcion-cuerpo .config-fila { margin-top: 4px; }
+      .opcion-cuerpo input[type="text"], .opcion-cuerpo select { width: 100%; }
+      .config-fila { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+      .config-fila label { margin: 0; min-width: 90px; }
+
+      .tamano-controles { display: flex; align-items: center; gap: 6px; }
+      .tamano-controles button { width: 42px; height: 40px; border: none; border-radius: 6px; background: var(--azul); color: white; font-size: 21px; font-weight: bold; cursor: pointer; }
+      .tamano-controles span { min-width: 65px; text-align: center; font-weight: bold; font-size: 16px; }
+      .config-vista-previa { margin-top: 14px; padding: 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; text-align: center; overflow: hidden; }
+      .config-vista-previa h4 { margin: 0 0 10px; color: var(--azul); font-size: 16px; }
+      .config-vista-previa .caratula { width: 300px; height: auto; min-height: 900px; max-height: none; margin: 0 auto; zoom: 0.74; }
+      #modalConfig .modal-caja { width: min(1120px, 96vw); max-width: 96vw; max-height: 94vh; padding: 26px; display: grid; grid-template-columns: minmax(440px, 1.05fr) minmax(360px, 0.95fr); gap: 22px; align-items: start; font-size: 16px; }
+      #modalConfig .modal-caja > h3 { margin-top: 0; font-size: 24px; }
+      #modalConfig .modal-caja > :not(.config-vista-previa) { grid-column: 1; }
+      #modalConfig .config-vista-previa { grid-column: 2; grid-row: 1 / span 20; position: sticky; top: 0; width: 100%; margin-top: 0; }
+      #modalConfig .config-cuerpo-seccion label { font-size: 16px; }
+      #modalConfig .config-cuerpo-seccion small { font-size: 14px; }
+      #modalConfig .aviso-config-pendiente { font-size: 15px; padding: 12px; }
+      @media (max-width: 850px) {
+        #modalConfig .modal-caja { display: block; width: min(620px, 96vw); padding: 20px; }
+        #modalConfig .config-vista-previa { position: static; width: 100%; margin-top: 12px; }
+        .config-vista-previa .caratula { zoom: 0.62; }
+      }
+
+      /* Paginación Mejorada */
+      .paginacion { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 12px; }
+      .paginacion button { background: var(--azul); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 14px; font-weight: bold; }
+      .paginacion button:disabled { opacity: 0.3; cursor: default; }
+      .paginacion .info-paginacion { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: bold; color: #334155; }
+      .paginacion select { width: auto; padding: 4px 6px; font-size: 13px; font-weight: bold; cursor: pointer; border-color: #cbd5e1; }
+
+      .lista-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 13px; transition: background 0.2s; }
+      .lista-item:hover { background: #f8fafc; }
+      .lista-item.bloque-duplicado { border: 2px solid #ef4444; background: #fff1f2; }
+      .lista-item.bloque-duplicado:hover { background: #ffe4e6; }
+      .marcador-bloque-duplicado { color: #b91c1c; font-size: 11px; font-weight: bold; margin-left: 6px; }
+      .lista-item b { color: var(--azul); }
+      .cargo-coincidente { color: #713f12; background: #fde047; border: 1px solid #eab308; border-radius: 4px; padding: 1px 4px; font-weight: bold; }
+      .marcado-busqueda {
+        background: #fef08a; color: #7c2d12; border-radius: 4px; padding: 1px 4px;
+        box-shadow: inset 0 -1px 0 rgba(120, 53, 15, 0.28); font-weight: 700;
+      }
+      .lista-item .acciones { display: flex; gap: 5px; margin-top: 8px; }
+      .lista-item .btn-accion { flex: 1; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; color: #fff; }
+
+      .controles-lista-folios { display: flex; gap: 8px; margin-bottom: 8px; }
+      .btn-orden-lista {
+        flex: 1; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155;
+        border-radius: 6px; padding: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+      }
+      .btn-orden-lista:hover { background: #e2e8f0; }
+      .btn-orden-lista.activo { background: #dbeafe; color: #1e3a8a; border-color: #93c5fd; }
+
+      .aviso-config-pendiente {
+        display: flex; width: 100%; margin: 12px 0 0; padding: 10px 12px;
+        border: 1px solid #93c5fd; border-radius: 8px; background: #eff6ff; color: #1e3a8a;
+        align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px;
+      }
+      .aviso-config-pendiente select { flex: 1; min-width: 190px; width: auto; }
+      .aviso-config-pendiente .btn { padding: 8px 12px; }
+
+      .btn-editar { background: #3b82f6; }
+      .btn-duplicar { background: #8b5cf6; }
+      .btn-eliminar { background: #ef4444; }
+
+      .nombres-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0 6px; }
+      .nombres-cabecera label { margin: 0; }
+
+      #btnMostrarNotas { border: 1px solid #64748b; background: #f8fafc; color: #334155; border-radius: 6px; padding: 5px 8px; cursor: pointer; font-size: 12px; }
+      #btnMostrarNotas.activo { background: var(--azul); color: #fff; border-color: var(--azul); }
+
+      .nota-pago-wrap { display: none; margin-top: 6px; padding: 7px 8px; border: 1px dashed #94a3b8; border-radius: 6px; background: #fff; }
+      .nota-pago-wrap.mostrar { display: block; }
+      .nota-pago-wrap label { margin: 0 0 4px; font-size: 11px; color: #475569; }
+      .nota-pago-total { margin-top: 4px; font-size: 11px; color: #475569; font-weight: bold; }
+      .nota-pago-error { color: #b91c1c; font-weight: normal; }
+
+      /* Carátula Componente Base */
+      .caratula-wrap { display: flex; flex-direction: column; align-items: center; }
+      .caratula { width: 300px; height: auto; min-height: 900px; max-height: none; border: 5px solid #000; border-radius: 40px; padding: 25px 20px; text-align: center; background: #fff; display: flex; flex-direction: column; box-sizing: border-box; }
+      .caratula .titulo { font-family: "Monotype Corsiva", cursive; font-size: var(--tamano-titulo, 22px); font-weight: bold; line-height: 1.15; margin-bottom: var(--espacio-titulo, 8px); }
+      .caratula img.escudo { width: var(--tamano-escudo, 120px); margin: 6px auto 14px; display: block; }
+      .caratula .subgerencia { font-weight: bold; margin-top: var(--espacio-gerencia, 0px); margin-bottom: 12px; line-height: 1.2; font-size: 14px; }
+      .caratula .cv-label { font-weight: bold; margin-top: var(--espacio-curriculum, 0px); margin-bottom: 6px; letter-spacing: 1px; text-align: center; font-size: 28px; }
+      .caratula .nombres { font-size: 15px; text-align: left; padding-left: 8px; padding-top: var(--espacio-nombres, 0px); flex-grow: 1; width: 100%; min-width: 0; }
+      .caratula .nombres div { margin-bottom: 6px; padding-left: 14px; position: relative; }
+      .caratula .nombres div:before { content: "➤"; position: absolute; left: -4px; color: var(--sky); font-size: 11px; }
+      .caratula .nombres div.separador { padding-left: 0; margin: 14px 0 8px; text-align: center; font-weight: bold; overflow-wrap: anywhere; word-break: normal; }
+      .caratula .nombres div.separador:before { content: none; }
+      .caratula .nombres div.separador-cv { letter-spacing: 1px; }
+      .caratula .folio-circulo {
+        font-size: var(--tamano-folio, 28px); font-weight: bold;
+        /* El círculo crece proporcionalmente cuando aumenta el número del folio.
+           28px de texto = 70px de círculo (tamaño original). */
+        width: clamp(70px, calc(var(--tamano-folio, 28px) * 2.5), 180px);
+        height: clamp(70px, calc(var(--tamano-folio, 28px) * 2.5), 180px);
+        border: 4px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        margin: 14px auto; transform: translateY(var(--posicion-folio, 0px)); flex-shrink: 0;
+      }
+      .caratula .periodo {
+        font-size: var(--tamano-periodo, 15px); font-weight: bold; margin-top: 6px;
+        transform: translateY(var(--posicion-periodo, 0px)); flex-shrink: 0;
+      }
+      .caratula.orden-periodo-arriba .folio-circulo { order: 6; }
+      .caratula.orden-periodo-arriba .periodo { order: 5; }
+      .caratula.orden-folio-arriba .periodo { order: 6; }
+      .caratula.orden-folio-arriba .folio-circulo { order: 5; }
+
+      #modoEdicion { display: none; background: #fef3c7; color: #92400e; padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; text-align: center; border: 1px solid #f59e0b; }
+      #modoEdicion.mostrar { display: block; }
+
+      /* Historial & Separador */
+      .historial-panel { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 12px; }
+      .historial-panel summary { cursor: pointer; font-weight: bold; color: var(--azul); }
+      .historial-item { font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; }
+      .historial-item .fecha { color: #6b7280; }
+
+      .nombre-row.separador-row { background: #fef9c3; border-color: #eab308; }
+      .nombre-row.separador-row .inpSeparador { width: 100%; padding: 8px; border: 1px solid #eab308; border-radius: 6px; text-align: center; background: #fffbeb; }
+
+      .lista-folios-duplicados { margin: 10px 0 0; padding: 0; list-style: none; }
+      .lista-folios-duplicados li { padding: 9px 10px; margin-top: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; }
+      .duplicado-clicable { cursor: pointer; text-decoration: underline; text-decoration-color: #facc15; text-underline-offset: 2px; }
+      .duplicado-clicable:hover { opacity: .75; }
+
+      /* ESTILOS PARA IMPRESIÓN MÚLTIPLE EN 1 HOJA */
+      .modal-impresion-caja {
+        background: #e2e8f0; width: 95vw; max-width: 1200px; height: 90vh; border-radius: 12px; display: flex; overflow: hidden;
+      }
+      .panel-seleccion-impresion {
+        width: 380px; background: #fff; padding: 20px; display: flex; flex-direction: column; border-right: 1px solid #cbd5e1;
+      }
+      .panel-vista-impresion {
+        flex: 1; padding: 20px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; background: #525659;
+      }
+      .hojas-impresion-preview {
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+      }
+      .hoja-impresion-pagina {
+        background: #fff; width: 210mm; min-height: 297mm; padding: 10mm; display: flex; flex-direction: row; justify-content: space-evenly; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); transform: scale(0.65); transform-origin: top center;
+      }
+      .hoja-impresion-pagina .caratula {
+        transform: scale(0.9);
+      }
+
+      /* ESTILOS EXCLUSIVOS DE IMPRESIÓN FÍSICA / PDF */
+      @media print {
+    @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  body * { visibility: hidden; }
+  #hojaImpresionImprimible, #hojaImpresionImprimible * { visibility: visible; }
+
+    .modal-overlay, .panel, .btn-group, #modoEdicion, .historial-panel, .encabezado, .caratula-wrap {
+    display: none !important;
+  }
+
+  /* 👇 esto es lo que faltaba: sacar el modal de impresión de ese apagón */
+  #modalImpresion,
+  #modalImpresion .modal-impresion-caja,
+  #modalImpresion .panel-vista-impresion {
+    display: block !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #modalImpresion {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  #modalImpresion .modal-impresion-caja {
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    border-radius: 0 !important;
+  }
+
+  #modalImpresion .panel-seleccion-impresion {
+    display: none !important;
+  }
+
+  #modalImpresion .panel-vista-impresion {
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  #hojaImpresionImprimible {
+    position: static !important; width: 100% !important; height: auto !important;
+    display: block !important; background: #fff !important; padding: 0 !important;
+  }
+
+  .hoja-impresion-pagina {
+    width: 210mm !important; height: auto !important; min-height: 0 !important;
+    padding: 10mm 0 !important; display: flex !important;
+    justify-content: space-around !important; align-items: center !important;
+    box-shadow: none !important; transform: none !important;
+    page-break-after: auto; break-after: auto;
+    page-break-inside: avoid; break-inside: avoid;
+  }
+
+  .hoja-impresion-pagina:not(:last-child) {
+    page-break-after: always !important; break-after: page !important;
+  }
+
+  .encabezado, .layout { zoom: 1 !important; }
+
+}
